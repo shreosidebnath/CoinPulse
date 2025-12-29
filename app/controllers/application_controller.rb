@@ -1,7 +1,8 @@
 class ApplicationController < ActionController::Base
   def setup
-    if Coin.count > 0
-      render plain: "✓ Database already seeded! #{Coin.count} coins exist."
+    # Check if need historical data
+    if Coin.count > 0 && PriceSnapshot.count > 100
+      render plain: "✓ Already set up! #{Coin.count} coins, #{PriceSnapshot.count} price snapshots exist."
       return
     end
 
@@ -19,6 +20,24 @@ class ApplicationController < ActionController::Base
         { id: 'dogecoin', name: 'Dogecoin', symbol: 'doge', price: 0.32 }
       ]
 
+      # If coins exist but no historical data, generate it
+      if Coin.count > 0 && PriceSnapshot.count < 100
+        Coin.all.each do |coin|
+          base_price = coin.current_price || 100
+          24.times do |i|
+            variation = rand(-5.0..5.0) / 100.0
+            PriceSnapshot.create!(
+              coin: coin,
+              price: base_price * (1 + variation),
+              recorded_at: i.hours.ago
+            )
+          end
+        end
+        render plain: "✅ Generated historical data for #{Coin.count} coins! Go to homepage!"
+        return
+      end
+
+      # Create coins if they don't exist
       service = CoingeckoService.new
       coins_data = service.fetch_top_coins(10)
 
