@@ -1,0 +1,24 @@
+<div class="min-h-screen bg-gradient-to-br from-cyber-darker via-cyber-dark to-cyber-darker py-12">
+  <div class="container mx-auto px-4 max-w-md">
+    <h1 class="text-4xl font-bold mb-8 text-center">
+      <span class="text-neon-green">Create</span> <span class="text-neon-blue">Portfolio</span>
+    </h1>
+    
+    <div class="bg-cyber-dark border border-neon-blue/30 rounded-2xl p-8 shadow-2xl shadow-neon-blue/10">
+      <%= form_with model: @portfolio, class: "space-y-6" do |f| %>
+        <div>
+          <%= f.label :name, "Portfolio Name", class: "block font-semibold mb-3 text-neon-green text-lg" %>
+          <%= f.text_field :name, placeholder: "e.g., My Crypto Portfolio", 
+              class: "w-full bg-cyber-darker border border-neon-blue/30 text-white rounded-lg px-4 py-3 focus:border-neon-blue focus:outline-none focus:shadow-lg focus:shadow-neon-blue/20 transition-all" %>
+        </div>
+        
+        <div class="flex gap-3 pt-4">
+          <%= f.submit "Create Portfolio", 
+              class: "flex-1 bg-gradient-to-r from-neon-green to-neon-blue text-black px-6 py-3 rounded-lg hover:shadow-lg hover:shadow-neon-green/50 transition-all duration-300 font-bold cursor-pointer" %>
+          <%= link_to "Cancel", root_path, 
+              class: "flex-1 bg-gray-800 text-gray-300 px-6 py-3 rounded-lg hover:bg-gray-700 transition-all text-center font-semibold" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

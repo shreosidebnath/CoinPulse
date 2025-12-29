@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>CoinPulse</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'cyber-dark': '#0a0e27',
+              'cyber-darker': '#050814',
+              'neon-green': '#39ff14',
+              'neon-blue': '#00f0ff',
+              'neon-red': '#ff073a',
+              'neon-purple': '#bc13fe',
+            }
+          }
+        }
+      }
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <%= javascript_include_tag "chartkick", "data-turbo-track": "reload" %>
+
+    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", type: "module" %>
+  </head>
+
+  <body class="bg-cyber-darker text-gray-100">
+    <!-- Flash Messages -->
+    <% if notice %>
+      <div class="bg-neon-green/20 border border-neon-green text-neon-green px-6 py-4 mx-4 mt-4 rounded-lg">
+        <%= notice %>
+      </div>
+    <% end %>
+    
+    <% if alert %>
+      <div class="bg-neon-red/20 border border-neon-red text-neon-red px-6 py-4 mx-4 mt-4 rounded-lg">
+        <%= alert %>
+      </div>
+    <% end %>
+
+    <%= yield %>
+  </body>
+</html>

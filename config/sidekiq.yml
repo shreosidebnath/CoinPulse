@@ -1,0 +1,4 @@
+:schedule:
+  price_update_job:
+    cron: '*/5 * * * *'  # Every 5 minutes
+    class: PriceUpdateJob

@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  coin: one
+  price: 9.99
+  recorded_at: 2025-12-28 21:42:12
+
+two:
+  coin: two
+  price: 9.99
+  recorded_at: 2025-12-28 21:42:12

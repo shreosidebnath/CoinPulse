@@ -1,0 +1,164 @@
+<div class="min-h-screen bg-gradient-to-br from-cyber-darker via-cyber-dark to-cyber-darker">
+  <!-- Header -->
+  <div class="border-b border-neon-blue/20 bg-cyber-dark/50 backdrop-blur">
+    <div class="container mx-auto px-4 py-4">
+      <div class="flex justify-between items-center">
+        <h1 class="text-4xl font-bold">
+          <span class="text-neon-green">Coin</span><span class="text-neon-blue">Pulse</span>
+        </h1>
+        <%= link_to "Sign Out", destroy_user_session_path, 
+            data: { turbo_method: :delete }, 
+            class: "bg-neon-red/10 border border-neon-red text-neon-red px-6 py-2 rounded-lg hover:bg-neon-red hover:text-black transition-all duration-300 font-semibold" %>
+      </div>
+    </div>
+  </div>
+
+  <div class="container mx-auto px-4 py-8">
+    <!-- Total Portfolio Value Card -->
+    <div class="bg-gradient-to-r from-cyber-dark to-cyber-darker border border-neon-green/30 rounded-2xl p-8 mb-8 shadow-2xl shadow-neon-green/10">
+      <h2 class="text-xl font-semibold text-gray-400 mb-3">Total Portfolio Value</h2>
+      <p class="text-6xl font-bold bg-gradient-to-r from-neon-green to-neon-blue bg-clip-text text-transparent">
+        $<%= number_with_precision(@total_value, precision: 2, delimiter: ',') %>
+      </p>
+    </div>
+
+    <!-- Portfolios Section -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-3xl font-bold text-neon-blue">My Portfolios</h2>
+        <%= link_to "Create New Portfolio", new_portfolio_path, 
+            class: "bg-gradient-to-r from-neon-blue to-neon-purple text-black px-6 py-3 rounded-lg hover:shadow-lg hover:shadow-neon-blue/50 transition-all duration-300 font-bold" %>
+      </div>
+      
+      <% if @portfolios.any? %>
+        <% @portfolios.each do |portfolio| %>
+          <div class="bg-cyber-dark border border-neon-blue/20 rounded-xl p-6 mb-6 hover:border-neon-blue/50 transition-all duration-300">
+            <h3 class="text-2xl font-bold text-neon-green mb-4"><%= portfolio.name %></h3>
+            
+            <% if portfolio.holdings.any? %>
+              <div class="overflow-x-auto">
+                <table class="w-full">
+                  <thead>
+                    <tr class="border-b border-neon-blue/20">
+                      <th class="text-left py-3 text-neon-blue font-semibold">Coin</th>
+                      <th class="text-right py-3 text-neon-blue font-semibold">Amount</th>
+                      <th class="text-right py-3 text-neon-blue font-semibold">Purchase Price</th>
+                      <th class="text-right py-3 text-neon-blue font-semibold">Current Price</th>
+                      <th class="text-right py-3 text-neon-blue font-semibold">Value</th>
+                      <th class="text-right py-3 text-neon-blue font-semibold">P&L</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% portfolio.holdings.each do |holding| %>
+                      <% current_price = holding.coin.price_snapshots.order(recorded_at: :desc).first&.price || holding.coin.current_price || 0 %>
+                      <% current_value = holding.amount * current_price %>
+                      <% purchase_value = holding.amount * holding.purchase_price %>
+                      <% profit_loss = current_value - purchase_value %>
+                      <% pl_percentage = purchase_value > 0 ? (profit_loss / purchase_value * 100) : 0 %>
+                      
+                      <tr class="border-b border-gray-800 hover:bg-cyber-darker/50 transition-colors">
+                        <td class="py-4">
+                          <span class="font-bold text-white text-lg"><%= holding.coin.name %></span>
+                          <span class="text-gray-500 text-sm ml-2"><%= holding.coin.symbol.upcase %></span>
+                        </td>
+                        <td class="text-right text-gray-300"><%= number_with_precision(holding.amount, precision: 8, strip_insignificant_zeros: true) %></td>
+                        <td class="text-right text-gray-300">$<%= number_with_precision(holding.purchase_price, precision: 2) %></td>
+                        <td class="text-right text-neon-blue font-semibold">$<%= number_with_precision(current_price, precision: 2) %></td>
+                        <td class="text-right font-bold text-white">$<%= number_with_precision(current_value, precision: 2) %></td>
+                        <td class="text-right">
+                          <span class="<%= profit_loss >= 0 ? 'text-neon-green' : 'text-neon-red' %> font-bold">
+                            <%= profit_loss >= 0 ? '↑ +' : '↓ ' %>$<%= number_with_precision(profit_loss.abs, precision: 2) %>
+                            (<%= number_with_precision(pl_percentage, precision: 2) %>%)
+                          </span>
+                        </td>
+                        <td class="text-right">
+                          <%= button_to "×", portfolio_holding_path(portfolio, holding), 
+                              method: :delete, 
+                              data: { turbo_confirm: "Remove this holding?" },
+                              class: "text-neon-red hover:bg-neon-red/20 px-3 py-1 rounded transition-all text-2xl font-bold" %>
+                        </td>
+                      </tr>
+                    <% end %>
+                  </tbody>
+                </table>
+              </div>
+            <% else %>
+              <p class="text-gray-500 italic">No holdings yet. Add some coins below!</p>
+            <% end %>
+            
+            <!-- Add Holding Form -->
+            <div class="mt-6 pt-6 border-t border-neon-green/20">
+              <h4 class="font-semibold text-neon-green mb-3">Add Holding</h4>
+              <%= form_with url: portfolio_holdings_path(portfolio), method: :post, class: "grid grid-cols-1 md:grid-cols-4 gap-3" do |f| %>
+                <%= f.select :coin_id, options_from_collection_for_select(@coins, :id, :name), 
+                    { prompt: "Select coin" }, 
+                    class: "bg-cyber-darker border border-neon-blue/30 text-white rounded-lg px-4 py-3 focus:border-neon-blue focus:outline-none" %>
+                <%= f.number_field :amount, placeholder: "Amount", step: 0.00000001, 
+                    class: "bg-cyber-darker border border-neon-blue/30 text-white rounded-lg px-4 py-3 focus:border-neon-blue focus:outline-none" %>
+                <%= f.number_field :purchase_price, placeholder: "Purchase price", step: 0.01, 
+                    class: "bg-cyber-darker border border-neon-blue/30 text-white rounded-lg px-4 py-3 focus:border-neon-blue focus:outline-none" %>
+                <%= f.submit "Add Holding", 
+                    class: "bg-neon-green text-black px-6 py-3 rounded-lg hover:shadow-lg hover:shadow-neon-green/50 transition-all duration-300 font-bold cursor-pointer" %>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="bg-cyber-dark border border-neon-red/30 rounded-xl p-8 text-center">
+          <p class="text-gray-400 text-lg">You don't have any portfolios yet. Create one to get started!</p>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- Available Cryptocurrencies -->
+    <div class="bg-cyber-dark border border-neon-purple/20 rounded-xl p-6">
+      <h2 class="text-3xl font-bold text-neon-purple mb-6">Available Cryptocurrencies</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        <% @coins.each do |coin| %>
+          <div class="bg-gradient-to-br from-cyber-darker to-cyber-dark border border-gray-800 rounded-lg p-5 hover:border-neon-green/50 hover:shadow-lg hover:shadow-neon-green/20 transition-all duration-300">
+            <h3 class="font-bold text-xl text-white mb-1"><%= coin.name %></h3>
+            <p class="text-gray-500 text-sm mb-3"><%= coin.symbol.upcase %></p>
+            <p class="text-3xl font-bold text-neon-green">
+              $<%= number_with_precision(coin.current_price, precision: 2, delimiter: ',') %>
+            </p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Price History Charts -->
+    <div class="bg-cyber-dark border border-neon-green/20 rounded-xl p-6 mt-8">
+      <h2 class="text-3xl font-bold text-neon-green mb-6">Price History (Last 24 Hours)</h2>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <% @coins.first(4).each do |coin| %>
+          <div class="bg-cyber-darker border border-gray-800 rounded-lg p-5">
+            <h3 class="font-bold text-xl text-white mb-4"><%= coin.name %> (<%= coin.symbol.upcase %>)</h3>
+            <%= line_chart coin.price_snapshots.where("recorded_at > ?", 24.hours.ago).group_by_hour(:recorded_at).average(:price),
+                colors: ["#39ff14"],
+                library: {
+                  backgroundColor: 'rgba(10, 14, 39, 0.8)',
+                  borderColor: '#39ff14',
+                  borderWidth: 2,
+                  pointBackgroundColor: '#00f0ff',
+                  pointBorderColor: '#39ff14',
+                  scales: {
+                    x: { 
+                      ticks: { color: '#6b7280' },
+                      grid: { color: 'rgba(107, 114, 128, 0.1)' }
+                    },
+                    y: { 
+                      ticks: { color: '#6b7280' },
+                      grid: { color: 'rgba(107, 114, 128, 0.1)' }
+                    }
+                  },
+                  plugins: {
+                    legend: { display: false }
+                  }
+                } %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

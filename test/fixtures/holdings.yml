@@ -1,0 +1,13 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  portfolio: one
+  coin: one
+  amount: 9.99
+  purchase_price: 9.99
+
+two:
+  portfolio: two
+  coin: two
+  amount: 9.99
+  purchase_price: 9.99
