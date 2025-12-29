@@ -24,12 +24,7 @@ class ApplicationController < ActionController::Base
 
       unless coins_data && coins_data.is_a?(Array)
         coins_data = fallback_coins.map do |coin|
-          {
-            'id' => coin[:id],
-            'name' => coin[:name],
-            'symbol' => coin[:symbol],
-            'current_price' => coin[:price]
-          }
+          { 'id' => coin[:id], 'name' => coin[:name], 'symbol' => coin[:symbol], 'current_price' => coin[:price] }
         end
       end
 
@@ -41,16 +36,20 @@ class ApplicationController < ActionController::Base
           current_price: coin_data['current_price']
         )
         
-        PriceSnapshot.create!(
-          coin: coin,
-          price: coin_data['current_price'],
-          recorded_at: Time.current
-        )
+        # Create 24 hours of historical data
+        24.times do |i|
+          variation = rand(-5.0..5.0) / 100.0
+          PriceSnapshot.create!(
+            coin: coin,
+            price: coin_data['current_price'] * (1 + variation),
+            recorded_at: i.hours.ago
+          )
+        end
       end
       
-      render plain: "Success! Created #{Coin.count} coins. Go to homepage now!"
+      render plain: "Success! Created #{Coin.count} coins with historical data. Go to homepage!"
     rescue => e
-      render plain: "Error: #{e.class} - #{e.message}\n\nBacktrace:\n#{e.backtrace.first(5).join("\n")}"
+      render plain: "Error: #{e.class} - #{e.message}"
     end
   end
 end
