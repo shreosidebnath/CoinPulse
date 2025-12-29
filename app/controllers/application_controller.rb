@@ -1,58 +1,56 @@
-def setup
-  # Only allow this once
-  if Coin.count > 0
-    render plain: "✓ Database already seeded! #{Coin.count} coins exist."
-    return
-  end
+class ApplicationController < ActionController::Base
+  def setup
+    if Coin.count > 0
+      render plain: "✓ Database already seeded! #{Coin.count} coins exist."
+      return
+    end
 
-  begin
-    # Fallback data if API fails
-    fallback_coins = [
-      { id: 'bitcoin', name: 'Bitcoin', symbol: 'btc', price: 95000 },
-      { id: 'ethereum', name: 'Ethereum', symbol: 'eth', price: 3500 },
-      { id: 'tether', name: 'Tether', symbol: 'usdt', price: 1.0 },
-      { id: 'binancecoin', name: 'BNB', symbol: 'bnb', price: 690 },
-      { id: 'ripple', name: 'XRP', symbol: 'xrp', price: 2.25 },
-      { id: 'usd-coin', name: 'USDC', symbol: 'usdc', price: 1.0 },
-      { id: 'solana', name: 'Solana', symbol: 'sol', price: 195 },
-      { id: 'tron', name: 'TRON', symbol: 'trx', price: 0.25 },
-      { id: 'cardano', name: 'Cardano', symbol: 'ada', price: 0.95 },
-      { id: 'dogecoin', name: 'Dogecoin', symbol: 'doge', price: 0.32 }
-    ]
+    begin
+      fallback_coins = [
+        { id: 'bitcoin', name: 'Bitcoin', symbol: 'btc', price: 95000 },
+        { id: 'ethereum', name: 'Ethereum', symbol: 'eth', price: 3500 },
+        { id: 'tether', name: 'Tether', symbol: 'usdt', price: 1.0 },
+        { id: 'binancecoin', name: 'BNB', symbol: 'bnb', price: 690 },
+        { id: 'ripple', name: 'XRP', symbol: 'xrp', price: 2.25 },
+        { id: 'usd-coin', name: 'USDC', symbol: 'usdc', price: 1.0 },
+        { id: 'solana', name: 'Solana', symbol: 'sol', price: 195 },
+        { id: 'tron', name: 'TRON', symbol: 'trx', price: 0.25 },
+        { id: 'cardano', name: 'Cardano', symbol: 'ada', price: 0.95 },
+        { id: 'dogecoin', name: 'Dogecoin', symbol: 'doge', price: 0.32 }
+      ]
 
-    # Try API first
-    service = CoingeckoService.new
-    coins_data = service.fetch_top_coins(10)
+      service = CoingeckoService.new
+      coins_data = service.fetch_top_coins(10)
 
-    # Use fallback if API fails
-    unless coins_data && coins_data.is_a?(Array)
-      coins_data = fallback_coins.map do |coin|
-        {
-          'id' => coin[:id],
-          'name' => coin[:name],
-          'symbol' => coin[:symbol],
-          'current_price' => coin[:price]
-        }
+      unless coins_data && coins_data.is_a?(Array)
+        coins_data = fallback_coins.map do |coin|
+          {
+            'id' => coin[:id],
+            'name' => coin[:name],
+            'symbol' => coin[:symbol],
+            'current_price' => coin[:price]
+          }
+        end
       end
-    end
 
-    coins_data.each do |coin_data|
-      coin = Coin.create!(
-        coingecko_id: coin_data['id'],
-        name: coin_data['name'],
-        symbol: coin_data['symbol'],
-        current_price: coin_data['current_price']
-      )
+      coins_data.each do |coin_data|
+        coin = Coin.create!(
+          coingecko_id: coin_data['id'],
+          name: coin_data['name'],
+          symbol: coin_data['symbol'],
+          current_price: coin_data['current_price']
+        )
+        
+        PriceSnapshot.create!(
+          coin: coin,
+          price: coin_data['current_price'],
+          recorded_at: Time.current
+        )
+      end
       
-      PriceSnapshot.create!(
-        coin: coin,
-        price: coin_data['current_price'],
-        recorded_at: Time.current
-      )
+      render plain: "Success! Created #{Coin.count} coins. Go to homepage now!"
+    rescue => e
+      render plain: "Error: #{e.class} - #{e.message}\n\nBacktrace:\n#{e.backtrace.first(5).join("\n")}"
     end
-    
-    render plain: "Success! Created #{Coin.count} coins. Go to homepage now!"
-  rescue => e
-    render plain: "Error: #{e.class} - #{e.message}\n\nBacktrace:\n#{e.backtrace.first(5).join("\n")}"
   end
 end
