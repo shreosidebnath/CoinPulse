@@ -1,7 +1,7 @@
 Rails.application.routes.draw do
-  get 'sessions/demo'
   devise_for :users
   post 'demo', to: 'sessions#demo', as: :demo
+  get 'setup', to: 'application#setup' if Rails.env.production?
   
   root 'dashboard#index'
   
